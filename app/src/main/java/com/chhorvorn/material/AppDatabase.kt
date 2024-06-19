@@ -52,5 +52,5 @@ interface itemDao {
     fun insert(taskItem: TASK_ITEM)
 
     @Update
-    fun delete(taskItem: TASK_ITEM)
+    fun update(taskItem: TASK_ITEM)
 }
