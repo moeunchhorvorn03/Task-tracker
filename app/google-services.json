@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "649849017377",
+    "project_id": "mobile-3f304",
+    "storage_bucket": "mobile-3f304.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:649849017377:android:7e4400c014cd0f3529ff60",
+        "android_client_info": {
+          "package_name": "com.chhorvorn.material"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAidP-qt4ovKfsl5HidgzpXiqMMK-QByk0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

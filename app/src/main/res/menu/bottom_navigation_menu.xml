@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_mail"
+        android:enabled="true"
+        android:icon="@drawable/ic_task"
+        android:title="Task" />
+    <item
+        android:id="@+id/navigation_meet"
+        android:enabled="true"
+        android:icon="@drawable/ic_completed"
+        android:title="Completed" />
+</menu>
