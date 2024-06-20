@@ -29,6 +29,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.room.Room
 import com.chhorvorn.material.databinding.MeetFragmentBinding
 import com.google.android.material.datepicker.MaterialDatePicker
@@ -38,24 +39,32 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Objects
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+
+interface OnCompletedTaskFragmentListener {
+    fun onCompletedTaskFragmentInteraction()
+}
 
 class MeetFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @SuppressLint("MissingInflatedId")
-    private lateinit var buttonSubmit: Button
-    private lateinit var editTextPhone: com.google.android.material.textfield.TextInputEditText
-    private lateinit var textInputLayoutPhone: com.google.android.material.textfield.TextInputLayout
-    private lateinit var firstName: com.google.android.material.textfield.TextInputEditText
-    private lateinit var lastName: com.google.android.material.textfield.TextInputEditText
-    private lateinit var city: com.google.android.material.textfield.TextInputEditText
-    private lateinit var zipCode: com.google.android.material.textfield.TextInputEditText
-    private lateinit var address: com.google.android.material.textfield.TextInputEditText
-    private lateinit var textInputSelectDate: com.google.android.material.textfield.TextInputEditText
+
     private lateinit var snackBar: Snackbar
     private var _binding: MeetFragmentBinding? = null
     private val binding get() = _binding!!
+    private lateinit var db: itemDao
+    private lateinit var item: List<TASK_ITEM>
+    private var listener: OnCompletedTaskFragmentListener? = null
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is OnCompletedTaskFragmentListener) {
+            listener = context
+        } else {
+            throw RuntimeException("$context must implement OnFragmentInteractionListener")
+        }
+    }
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -70,75 +79,8 @@ class MeetFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        editTextPhone = binding.phone
-        textInputLayoutPhone = binding.textInputLayoutPhone
-        firstName = binding.firstName
-        lastName = binding.lastName
-        city = binding.city
-        zipCode = binding.zipCode
-        address = binding.address
-        buttonSubmit = binding.submitButton
-        textInputSelectDate = binding.selectDate
-
-//        snackBar = Snackbar.make(view, "Meet", Snackbar.LENGTH_SHORT)
-//        snackBar.setAction("Undo") { println("Undo") }
-//        snackBar.show()
-
-        val db = Room.databaseBuilder(
-            requireContext(),
-            AppDatabase::class.java,
-            "Users"
-        )
-            .fallbackToDestructiveMigration()
-            .build()
-
-        val itemDao = db.itemDao()
-
-        buttonSubmit.setOnClickListener {
-            val phone = editTextPhone.text.toString()
-            val first = firstName.text.toString()
-            val lastName = lastName.text.toString()
-            val city = city.text.toString()
-            val address = address.text.toString()
-            val zipCode = zipCode.text.toString()
-            var isValid = true
-
-            if (phone.isEmpty()) {
-                textInputLayoutPhone.error = "Phone cannot be empty!"
-                isValid = false
-            } else if (phone.length < 10) {
-                textInputLayoutPhone.error = "Phone must be at least 10 characters"
-                isValid = false
-            } else if (phone.length > 12) {
-                textInputLayoutPhone.error = "Phone must be at most 12 characters"
-                isValid = false
-            } else {
-                textInputLayoutPhone.error = null
-            }
-
-            if (isValid) {
-                Toast.makeText(requireContext(), "Saved", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        textInputSelectDate.setOnTouchListener { v, event ->
-            val DRAWABLE_RIGHT = 2
-            if (event.action == MotionEvent.ACTION_UP) {
-                if (event.rawX >= (textInputSelectDate.right - textInputSelectDate.compoundDrawables[DRAWABLE_RIGHT].bounds.width())) {
-                    val datePicker = onCreateDatePicker()
-                    datePicker.addOnPositiveButtonClickListener { selection ->
-                        val date = Date(selection)
-                        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                        val formattedDate = dateFormat.format((date))
-                        textInputSelectDate.setText(formattedDate)
-                    }
-                    datePicker.show(childFragmentManager, "tag")
-                }
-                return@setOnTouchListener true
-            }
-            return@setOnTouchListener true
-        }
+        db = AppDatabase.getDatabase(requireContext()).itemDao()
+        loadData()
     }
 
     private fun onCreateDatePicker(): MaterialDatePicker<Long> {
@@ -147,4 +89,52 @@ class MeetFragment : Fragment() {
             .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
         return datePicker.build()
     }
+
+    private fun loadData() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            item = db.getDataWithStatusTrue()
+            val recyclerView = binding.recyclerView
+            recyclerView.layoutManager = LinearLayoutManager(requireContext())
+            recyclerView.adapter = CompletedTaskAdapter(item, object : OnClickListener {
+                override fun onItemDelete(position: Int) {
+                    val taskToDelete = TASK_ITEM(uid = item[position].uid, title = item[position].title, desc = item[position].desc, status = item[position].status)
+                    deleteTask(taskToDelete)
+                }
+            })
+        }
+    }
+
+    private fun deleteTask(task: TASK_ITEM) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val updateSuccess = db.delete(task)
+            listener?.onCompletedTaskFragmentInteraction()
+        }
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        listener = null
+    }
 }
+//        snackBar = Snackbar.make(view, "Meet", Snackbar.LENGTH_SHORT)
+//        snackBar.setAction("Undo") { println("Undo") }
+//        snackBar.show()
+
+
+//        textInputSelectDate.setOnTouchListener { v, event ->
+//            val DRAWABLE_RIGHT = 2
+//            if (event.action == MotionEvent.ACTION_UP) {
+//                if (event.rawX >= (textInputSelectDate.right - textInputSelectDate.compoundDrawables[DRAWABLE_RIGHT].bounds.width())) {
+//                    val datePicker = onCreateDatePicker()
+//                    datePicker.addOnPositiveButtonClickListener { selection ->
+//                        val date = Date(selection)
+//                        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+//                        val formattedDate = dateFormat.format((date))
+//                        textInputSelectDate.setText(formattedDate)
+//                    }
+//                    datePicker.show(childFragmentManager, "tag")
+//                }
+//                return@setOnTouchListener true
+//            }
+//            return@setOnTouchListener true
+//        }

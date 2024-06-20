@@ -13,13 +13,12 @@ import com.google.firebase.FirebaseApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MainActivity : AppCompatActivity(), OnFragmentListener {
+class MainActivity : AppCompatActivity(), OnFragmentListener, OnCompletedTaskFragmentListener {
     lateinit var binding: ActivityMainBinding
     lateinit var bottomNavigation: BottomNavigationView
     lateinit var badge: BadgeDrawable
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FirebaseApp.initializeApp(this)
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
@@ -54,6 +53,7 @@ class MainActivity : AppCompatActivity(), OnFragmentListener {
         lifecycleScope.launch(Dispatchers.IO) {
             item = database.getAll()
             badge.number = item.size
+            badge.isVisible = badge.number != 0
         }
 
         supportFragmentManager
@@ -64,5 +64,9 @@ class MainActivity : AppCompatActivity(), OnFragmentListener {
 
     override fun onFragmentInteraction() {
         loadFragment(TaskFragment())
+    }
+
+    override fun onCompletedTaskFragmentInteraction() {
+        loadFragment(MeetFragment())
     }
 }

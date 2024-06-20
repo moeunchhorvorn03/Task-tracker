@@ -79,14 +79,13 @@ class FullscreenFragment : DialogFragment() {
                             uid = 0,
                             title = taskTitle.text.toString(),
                             desc = taskDescription.text.toString(),
-                            status = true
+                            status = false
                         )
-                    val item: Unit = taskDao.insert(newTaskItem)
-                    println(item)
+                    val insertSuccess: Unit = taskDao.insert(newTaskItem)
+                    listener?.onFragmentInteraction()
                     dismiss()
                 }
 
-                listener?.onFragmentInteraction()
             }
         }
 
@@ -104,5 +103,9 @@ class FullscreenFragment : DialogFragment() {
     override fun onDetach() {
         super.onDetach()
         listener = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
     }
 }

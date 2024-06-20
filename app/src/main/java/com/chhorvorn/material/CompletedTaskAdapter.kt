@@ -1,22 +1,25 @@
 package com.chhorvorn.material
 
-import android.graphics.Paint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView.OnItemClickListener
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 
-open class TaskAdapter(private val item: List<TASK_ITEM>, val listener: TaskInterface): RecyclerView.Adapter<TaskAdapter.ViewHolder>() {
+interface OnClickListener {
+    fun onItemDelete(position: Int)
+}
+open class CompletedTaskAdapter(
+    private val item: List<TASK_ITEM>,
+    private val listener: OnClickListener
+): RecyclerView.Adapter<CompletedTaskAdapter.ViewHolder>() {
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val title: TextView = view.findViewById(R.id.textItem)
         val desc: TextView = view.findViewById(R.id.desc)
-        val doneButton: TextView = view.findViewById(R.id.doneButton)
         val deleteButton: ImageView = view.findViewById(R.id.deleteButton)
+        val doneButton: TextView = view.findViewById(R.id.doneButton)
         val completedButton: TextView = view.findViewById(R.id.completed)
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -27,32 +30,16 @@ open class TaskAdapter(private val item: List<TASK_ITEM>, val listener: TaskInte
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.title.text = item[position].title
-        holder.title.paintFlags = if (item[position].status) Paint.STRIKE_THRU_TEXT_FLAG else 0
-
         holder.desc.text = item[position].desc
-        holder.desc.isVisible = item[position].desc.toString().isEmpty() != true
-
-        //Delete button
-        holder.deleteButton.isVisible = false
+        holder.desc.isVisible = item[position].desc?.isEmpty() != true
+        holder.deleteButton.isVisible = item[position].status == true
         holder.deleteButton.setOnClickListener {
             listener.onItemDelete(position)
         }
 
-        //complete button
-        holder.completedButton.isVisible = item[position].status == true
-
-        // Done button
-        holder.doneButton.isVisible = item[position].status != true
-        holder.doneButton.setOnClickListener {
-            listener.onItemDone(position)
-        }
+        holder.doneButton.isVisible = false
+        holder.completedButton.isVisible = false
     }
 
     override fun getItemCount(): Int = item.size
-
-    interface TaskInterface {
-        fun onItemClick(position: Int)
-        fun onItemDelete(position: Int)
-        fun onItemDone(position: Int)
-    }
 }

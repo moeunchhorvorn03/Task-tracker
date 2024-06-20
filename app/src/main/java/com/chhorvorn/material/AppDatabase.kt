@@ -47,9 +47,13 @@ data class TASK_ITEM(
 interface itemDao {
     @Query("SELECT * FROM TASK_ITEM")
     fun getAll(): List<TASK_ITEM>
-
+    @Query("SELECT * FROM TASK_ITEM WHERE status = 1")
+    fun getDataWithStatusTrue(): List<TASK_ITEM>
     @Insert
     fun insert(taskItem: TASK_ITEM)
+
+    @Delete
+    fun delete(taskItem: TASK_ITEM)
 
     @Update
     fun update(taskItem: TASK_ITEM)

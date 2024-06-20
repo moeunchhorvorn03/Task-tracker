@@ -7,14 +7,16 @@
     tools:context=".TaskFragment"
     android:orientation="vertical">
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/Base.Theme.Material"
         android:background="#ede9f2">
         <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_scrollFlags="scroll|enterAlways"
+            app:layout_scrollFlags="noScroll"
             android:theme="@style/Base.Theme.Material">
             <ImageView
                 android:layout_width="wrap_content"
@@ -22,7 +24,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Task"
+                android:text="All Tasks"
                 android:textSize="30sp"
                 android:textStyle="bold"
                 android:textColor="@color/common_google_signin_btn_text_light"
